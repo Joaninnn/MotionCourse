@@ -1,23 +1,15 @@
+// src/redux/api/auth/types.d.ts
 export interface ILoginRequest {
     username: string;
     password: string;
 }
 
-export interface IUser {
-    username: string;
-    email: string;
-}
-
 export interface ILoginResponse {
-    user: IUser;
+    user: {
+        username: string;
+        email: string | null; // email может быть пустым
+    };
+    // Токены приходят в ответе от бекенда
     access: string;
     refresh: string;
-}
-
-export interface IRefreshRequest {
-    refresh: string;
-}
-
-export interface IRefreshResponse {
-    access: string;
 }

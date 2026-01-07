@@ -1,3 +1,4 @@
+// src/appPages/auth/components/pages/login/login.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -9,56 +10,28 @@ export default function Login() {
     const router = useRouter();
     const [login, { isLoading }] = useLoginMutation();
 
-    const [formData, setFormData] = useState({
-        username: "",
-        password: "",
-    });
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
 
-    const [errorMessage, setErrorMessage] = useState<string>("");
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-        setErrorMessage("");
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!formData.username || !formData.password) {
-            setErrorMessage("Пожалуйста, заполните все поля");
+    const handleLogin = async () => {
+        if (!username || !password) {
             return;
         }
 
         try {
-            const result = await login({
-                username: formData.username,
-                password: formData.password,
-            }).unwrap();
-
-            // Успешная авторизация
-            console.log("Login successful:", result);
+            await login({ username, password }).unwrap();
             router.push("/home");
         } catch (err) {
-            console.error("Login error:", err);
-            setErrorMessage(
-                err || "Неверный логин или пароль. Попробуйте снова."
-            );
+            // Ничего не делаем при ошибке - просто игнорируем
+            // Пользователь останется на странице логина
         }
     };
 
     return (
         <section className={style.login}>
             <div className={style.content}>
-                <form className={style.form} onSubmit={handleSubmit}>
+                <div className={style.form}>
                     <h2 className={style.title}>ВХОД В СИСТЕМУ</h2>
-
-                    {errorMessage && (
-                        <div className={style.error}>{errorMessage}</div>
-                    )}
 
                     <div className={style.Block}>
                         <h2 className={style.Text}>ЛОГИН</h2>
@@ -66,9 +39,8 @@ export default function Login() {
                             className={style.input}
                             placeholder="Введите логин"
                             type="text"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleInputChange}
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                             disabled={isLoading}
                         />
                     </div>
@@ -79,21 +51,24 @@ export default function Login() {
                             className={style.input}
                             placeholder="Введите пароль"
                             type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleInputChange}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            onKeyPress={(e) =>
+                                e.key === "Enter" && handleLogin()
+                            }
                             disabled={isLoading}
                         />
                     </div>
 
                     <button
                         className={style.button}
-                        type="submit"
+                        type="button"
+                        onClick={handleLogin}
                         disabled={isLoading}
                     >
                         {isLoading ? "ВХОД..." : "ВОЙТИ"}
                     </button>
-                </form>
+                </div>
             </div>
         </section>
     );

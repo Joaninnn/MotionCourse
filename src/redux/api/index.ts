@@ -1,19 +1,23 @@
 // src/redux/api/index.ts
-
 import {
-    BaseQueryFn,
     createApi,
     fetchBaseQuery,
+    BaseQueryFn,
     FetchArgs,
     FetchBaseQueryError,
 } from "@reduxjs/toolkit/query/react";
-import { tokenService } from "@/utils/token";
+import Cookies from "js-cookie";
+
+// Интерфейс для ответа refresh token
+interface RefreshTokenResponse {
+    access: string;
+}
 
 const baseQuery = fetchBaseQuery({
-    baseUrl: `${process.env.NEXT_PUBLIC_MOTIONCOURSE_API}/`,
+    baseUrl: process.env.NEXT_PUBLIC_MOTIONCOURSE_API,
     prepareHeaders: (headers) => {
-        const token = tokenService.getAccessToken();
-
+        // Добавляем access token из cookies в каждый запрос
+        const token = Cookies.get("access_token");
         if (token) {
             headers.set("Authorization", `Bearer ${token}`);
         }
@@ -28,15 +32,15 @@ const baseQueryWithReauth: BaseQueryFn<
 > = async (args, api, extraOptions) => {
     let result = await baseQuery(args, api, extraOptions);
 
-    // Если получили 401 ошибку, пробуем обновить токен
+    // Если получили 401 ошибку - пробуем обновить токен
     if (result.error && result.error.status === 401) {
-        const refreshToken = tokenService.getRefreshToken();
+        const refreshToken = Cookies.get("refresh_token");
 
         if (refreshToken) {
-            // Пытаемся обновить токен
+            // Пытаемся обновить access token
             const refreshResult = await baseQuery(
                 {
-                    url: "refresh/",
+                    url: "/api/token/refresh",
                     method: "POST",
                     body: { refresh: refreshToken },
                 },
@@ -45,23 +49,28 @@ const baseQueryWithReauth: BaseQueryFn<
             );
 
             if (refreshResult.data) {
-                // Сохраняем новый access токен
-                const newAccessToken = (
-                    refreshResult.data as { access: string }
-                ).access;
-                tokenService.setTokens(newAccessToken, refreshToken);
+                // Успешно обновили токен - сохраняем новый access token
+                const data = refreshResult.data as RefreshTokenResponse;
+                const newAccessToken = data.access;
+
+                Cookies.set("access_token", newAccessToken, {
+                    expires: 1 / 24, // 1 час
+                    path: "/",
+                });
 
                 // Повторяем оригинальный запрос с новым токеном
                 result = await baseQuery(args, api, extraOptions);
             } else {
-                // Refresh токен невалидный, разлогиниваем пользователя
-                tokenService.clearTokens();
+                // Не удалось обновить токен - удаляем все токены и редиректим
+                Cookies.remove("access_token");
+                Cookies.remove("refresh_token");
+
                 if (typeof window !== "undefined") {
                     window.location.href = "/login";
                 }
             }
         } else {
-            // Нет refresh токена, перенаправляем на логин
+            // Нет refresh token - редиректим на логин
             if (typeof window !== "undefined") {
                 window.location.href = "/login";
             }
@@ -74,8 +83,6 @@ const baseQueryWithReauth: BaseQueryFn<
 export const api = createApi({
     reducerPath: "api",
     baseQuery: baseQueryWithReauth,
-    refetchOnFocus: true,
-    refetchOnReconnect: true,
-    tagTypes: ["course", "login", "student-profile"],
+    tagTypes: ["User", "Lessons"],
     endpoints: () => ({}),
 });
