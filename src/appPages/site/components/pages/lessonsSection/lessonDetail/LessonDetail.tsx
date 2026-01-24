@@ -1,98 +1,87 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import style from "./lessonDetail.module.scss";
-import Image from "next/image";
-import { useGetLessonsQuery } from "@/redux/api/lessons";
 import { useGetVideosDetailQuery } from "@/redux/api/video";
+import { useGetCourseVideosQuery, useGetLessonDetailQuery } from "@/redux/api/lessons";
 import { useAppSelector } from "@/redux/hooks";
-
-interface CourseItem {
-    id: number;
-    course_image: string;
-    course_name: string;
-    description: string;
-    created_at: string;
-}
-
-export interface CourseItemDetail {
-    id: number;
-    course: number;
-    category_lesson: CategoryLesson;
-    video: string;
-    lesson_number: number;
-    description: string;
-}
-
-export interface CategoryLesson {
-    id: number;
-    ct_lesson_name: string;
-}
 
 function LessonDetail() {
     const router = useRouter();
     const currentUser = useAppSelector((state) => state.user);
-    const { data: CourseItem = [] } = useGetLessonsQuery();
     const { id } = useParams();
 
-    const { data: CourseItemDetail, isLoading, error } = useGetVideosDetailQuery(Number(id), {
+    // Получаем детали текущего видео
+    const { 
+        data: videoDetail, 
+        isLoading: isVideoLoading, 
+        error: videoError 
+    } = useGetVideosDetailQuery(Number(id), {
         skip: !id,
     });
 
-    // Проверка доступа - видео должно принадлежать курсу пользователя
-    const hasAccess = CourseItemDetail && CourseItemDetail.course === currentUser?.course;
+    // Получаем детали курса, к которому принадлежит видео
+    const { 
+        data: courseDetail, 
+        isLoading: isCourseLoading 
+    } = useGetLessonDetailQuery(
+        videoDetail?.course || 0,
+        {
+            skip: !videoDetail?.course,
+        }
+    );
 
-    console.log("🔍 [LESSON_DETAIL] User course ID:", currentUser?.course);
-    console.log("🔍 [LESSON_DETAIL] Video course ID:", CourseItemDetail?.course);
-    console.log("🔍 [LESSON_DETAIL] Video ID:", id);
-    console.log("🔍 [LESSON_DETAIL] Has access:", hasAccess);
-    console.log("🔍 [LESSON_DETAIL] User status:", currentUser?.status);
+    // Получаем список других видео того же курса для "Следующие уроки"
+    const { data: courseVideos = [] } = useGetCourseVideosQuery(
+        {
+            course_id: currentUser?.course?.toString() || "",
+        },
+        {
+            skip: !currentUser?.course || !videoDetail,
+        }
+    );
 
     const videoRef = useRef<HTMLVideoElement | null>(null);
 
-    const [search] = useState("");
-    const [date] = useState("");
+    // Проверка доступа - видео должно принадлежать курсу пользователя
+    const hasAccess = videoDetail && videoDetail.course === currentUser?.course;
 
-    // Если нет доступа, показываем сообщение об ошибке
-    if (!isLoading && !error && CourseItemDetail && !hasAccess) {
-        return (
-            <div className={style.container}>
-                <div className={style.accessDenied}>
-                    <h1>Доступ запрещен</h1>
-                    <p>
-                        У вас нет доступа к этому видео. 
-                        <br />
-                        Видео курса ID: {CourseItemDetail.course}
-                        <br />
-                        Ваш курс ID: {currentUser?.course || 'не назначен'}
-                    </p>
-                    <button 
-                        className={style.backButton}
-                        onClick={() => router.back()}
-                    >
-                        Вернуться назад
-                    </button>
-                </div>
-            </div>
-        );
-    }
+    console.log("🔍 [LESSON_DETAIL] User course ID:", currentUser?.course);
+    console.log("🔍 [LESSON_DETAIL] Video course ID:", videoDetail?.course);
+    console.log("🔍 [LESSON_DETAIL] Video ID:", id);
+    console.log("🔍 [LESSON_DETAIL] Has access:", hasAccess);
 
-    const course = CourseItem.find((item) => item.id === Number(id));
-    const courseDetail = CourseItemDetail;
+    // Фильтруем видео: 
+    // 1. Та же категория урока (тема)
+    // 2. Исключаем текущее видео
+    // 3. Сортируем по номеру урока
+    // 4. Берем только следующие уроки (с большим номером)
+    const nextLessons = courseVideos
+        .filter((video) => {
+            // Та же категория урока
+            const sameCategory = videoDetail && 
+                video.category_lesson.id === videoDetail.category_lesson.id;
+            
+            // Не текущее видео
+            const notCurrent = video.id !== Number(id);
+            
+            // Номер урока больше текущего
+            const isNext = videoDetail && 
+                video.lesson_number > videoDetail.lesson_number;
+            
+            return sameCategory && notCurrent && isNext;
+        })
+        .sort((a, b) => a.lesson_number - b.lesson_number) // Сортируем по возрастанию номера
+        .slice(0, 6); // Ограничиваем количество (первые 6 следующих)
 
-    const filteredData = CourseItem.filter((item) => {
-        const matchesName = item.course_name
-            .toLowerCase()
-            .includes(search.toLowerCase());
+    console.log("🔍 [NEXT_LESSONS] Current category:", videoDetail?.category_lesson);
+    console.log("🔍 [NEXT_LESSONS] Current lesson number:", videoDetail?.lesson_number);
+    console.log("🔍 [NEXT_LESSONS] Next lessons:", nextLessons);
+    console.log("🔍 [NEXT_LESSONS] Next lessons count:", nextLessons.length);
 
-        const matchesDate = date ? item.created_at === date : true;
-
-        return matchesName && matchesDate;
-    });
-
-    const handleBookClick = (item: CourseItem): void => {
-        router.push(`/lessons/${item.id}`);
+    const handleVideoClick = (video: LESSONS.VideoListItem): void => {
+        router.push(`/lessons/${video.id}`);
     };
 
     useEffect(() => {
@@ -111,8 +100,67 @@ function LessonDetail() {
         return () => document.removeEventListener("keydown", disableKeys);
     }, []);
 
-    if (!course) {
-        return <p>Курс не найден 😕</p>;
+    // Обработка состояния загрузки
+    if (isVideoLoading || isCourseLoading) {
+        return (
+            <div className={style.empty}>
+                <p>Загрузка...</p>
+            </div>
+        );
+    }
+
+    // Обработка ошибки
+    if (videoError) {
+        return (
+                <div className={style.empty}>
+                    <h1>Ошибка загрузки</h1>
+                    <p>Не удалось загрузить видео. Попробуйте позже.</p>
+                    <button 
+                        className={style.backButton}
+                        onClick={() => router.push("/lessons")}
+                    >
+                        Вернуться к урокам
+                    </button>
+                </div>
+            );
+    }
+
+    // Если видео не найдено
+    if (!videoDetail) {
+        return (
+                <div className={style.empty}>
+                    <h1>Видео не найдено</h1>
+                    <p>Запрашиваемое видео не существует 😕</p>
+                    <button 
+                        className={style.backButton}
+                        onClick={() => router.push("/lessons")}
+                    >
+                        Вернуться к урокам
+                    </button>
+                </div>
+        );
+    }
+
+    // Если нет доступа
+    if (!hasAccess) {
+        return (
+                <div className={style.empty}>
+                    <h1>Доступ запрещен</h1>
+                    <p>
+                        У вас нет доступа к этому видео. 
+                        <br />
+                        Видео курса ID: {videoDetail.course}
+                        <br />
+                        Ваш курс ID: {currentUser?.course || 'не назначен'}
+                    </p>
+                    <button 
+                        className={style.backButton}
+                        onClick={() => router.push("/lessons")}
+                    >
+                        Вернуться к моим урокам
+                    </button>
+                </div>
+        );
     }
 
     return (
@@ -120,11 +168,11 @@ function LessonDetail() {
             <div className="container">
                 <div className={style.content}>
                     <div className={style.detailContent}>
-                        {courseDetail?.video && (
+                        {videoDetail.video && (
                             <video
                                 ref={videoRef}
                                 className={style.lessonVideo}
-                                src={courseDetail.video}
+                                src={videoDetail.video}
                                 controls
                                 autoPlay={false}
                                 loop={false}
@@ -140,30 +188,34 @@ function LessonDetail() {
 
                         <div className={style.lessonInfo}>
                             <h2 className={style.title}>
-                                {courseDetail?.category_lesson.ct_lesson_name}
+                                {videoDetail.category_lesson.ct_lesson_name}
                             </h2>
                             <div className={style.hr}></div>
 
-                            <div className={style.themeBlock}>
-                                <h2 className={style.themeTitle}>Подтема:</h2>
-                                <h2 className={style.theme}>
-                                    {course?.course_name}
-                                </h2>
-                            </div>
+                            {courseDetail && (
+                                <>
+                                    <div className={style.themeBlock}>
+                                        <h2 className={style.themeTitle}>Курс:</h2>
+                                        <h2 className={style.theme}>
+                                            {courseDetail.course_name}
+                                        </h2>
+                                    </div>
+
+                                    <div className={style.dataBlock}>
+                                        <h2 className={style.dataTitle}>Дата создания курса:</h2>
+                                        <h2 className={style.data}>
+                                            {courseDetail.created_at}
+                                        </h2>
+                                    </div>
+                                </>
+                            )}
 
                             <div className={style.numberBlock}>
                                 <h2 className={style.numberTitle}>
                                     Урок по счету:
                                 </h2>
                                 <h2 className={style.number}>
-                                    {courseDetail?.course}
-                                </h2>
-                            </div>
-
-                            <div className={style.dataBlock}>
-                                <h2 className={style.dataTitle}>Дата:</h2>
-                                <h2 className={style.data}>
-                                    {course.created_at}
+                                    {videoDetail.lesson_number}
                                 </h2>
                             </div>
 
@@ -172,45 +224,40 @@ function LessonDetail() {
                             <div className={style.descBlock}>
                                 <h2 className={style.desctitle}>ОПИСАНИЕ</h2>
                                 <p className={style.desc}>
-                                    {course.description}
+                                    {videoDetail.description || 'Описание отсутствует'}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <div className={style.table}>
-                        <h2 className={style.title}>СЛЕДУЮЩИЕ УРОКИ</h2>
-                        <div className={style.cards}>
-                            {filteredData.length > 0 ? (
-                                filteredData.map((item) => (
+                    {nextLessons.length > 0 && (
+                        <div className={style.table}>
+                            <h2 className={style.title}>
+                                СЛЕДУЮЩИЕ УРОКИ ПО ТЕМЕ: {videoDetail.category_lesson.ct_lesson_name}
+                            </h2>
+                            <div className={style.cards}>
+                                {nextLessons.map((video) => (
                                     <div
-                                        key={item.id}
+                                        key={video.id}
                                         className={style.card}
-                                        onClick={() => handleBookClick(item)}
+                                        onClick={() => handleVideoClick(video)}
+                                       
                                     >
-                                        <Image
-                                            width={300}
-                                            height={200}
-                                            src={item.course_image}
-                                            alt={item.course_name}
-                                            className={style.image}
-                                        />
-                                        <div className={style.cardInfo}>
-                                            <h3>{item.course_name}</h3>
-                                            <p>{item.description}</p>
-                                            <span className={style.date}>
-                                                {item.created_at}
-                                            </span>
-                                        </div>
+                                        <h3 
+                                           className={style.title}
+                                        >
+                                            {video.category_lesson.ct_lesson_name}
+                                        </h3>
+                                        <p 
+                                            
+                                        >
+                                            Номер урока: {video.lesson_number}
+                                        </p>
                                     </div>
-                                ))
-                            ) : (
-                                <p className={style.empty}>
-                                    Ничего не найдено 😕
-                                </p>
-                            )}
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </section>
