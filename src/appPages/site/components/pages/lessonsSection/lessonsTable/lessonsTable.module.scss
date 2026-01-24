@@ -1,17 +1,18 @@
 .empty {
-    grid-column: 1 / -1; // Занимает всю ширину грида
     display: flex;
+    width: 100vw;
+    height: 100vh;
     align-items: center;
     justify-content: center;
-    min-height: 300px;
-    color: white;
+    color: rgb(0, 0, 0);
     font-size: 18px;
+    background: black;
 }
 
 .LessonsTable {
     background: black;
     padding: 30px 0;
-    height: 100vh;
+    min-height: 100vh;
 
     .content {
         display: flex;
@@ -36,7 +37,6 @@
                     font-size: 30px;
                 }
             }
-            
 
             .filters {
                 display: flex;
@@ -80,7 +80,7 @@
             .card {
                 background: #1a1a1a;
                 border: 2px solid #333;
-                border-radius: 10px;
+                border-radius: 5px;
                 overflow: hidden;
                 cursor: pointer;
                 transition: all 0.3s ease;
@@ -162,6 +162,35 @@
                 }
             }
         }
+
+        .showMoreContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+
+            .showMoreButton {
+                padding: 15px 40px;
+                color: white;
+                background-color: black;
+                border: 2px solid white;
+                box-shadow: 5px 5px 0 rgb(255, 0, 0);
+                font-size: 18px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+
+                &:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 7px 7px 0 rgb(255, 0, 0);
+                }
+
+                &:active {
+                    transform: translateY(0);
+                    box-shadow: 3px 3px 0 rgb(255, 0, 0);
+                }
+            }
+        }
     }
 }
 
@@ -180,10 +209,16 @@
     .LessonsTable {
         .content {
             .title {
-                .cardsTitle {
-                    font-size: 36px;
+                .titleContent {
+                    align-items: flex-start;
+                    flex-direction: column;
+                    .cardsTitle {
+                        font-size: 36px;
+                    }
+                    .cardsTitleCourse {
+                        font-size: 26px;
+                    }
                 }
-
                 .filters {
                     flex-direction: column;
                 }
@@ -209,6 +244,13 @@
                     .date {
                         font-size: 14px;
                     }
+                }
+            }
+
+            .showMoreContainer {
+                .showMoreButton {
+                    padding: 12px 30px;
+                    font-size: 16px;
                 }
             }
         }
@@ -252,6 +294,13 @@
                     .date {
                         font-size: 12px;
                     }
+                }
+            }
+
+            .showMoreContainer {
+                .showMoreButton {
+                    padding: 10px 25px;
+                    font-size: 14px;
                 }
             }
         }

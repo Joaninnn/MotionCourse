@@ -9,6 +9,7 @@ import { useAppSelector } from "@/redux/hooks";
 function LessonsTable() {
     const [search, setSearch] = useState("");
     const [lessonNumber, setLessonNumber] = useState("");
+    const [visibleCount, setVisibleCount] = useState(9); // Начальное количество видимых уроков
     const router = useRouter();
     
     const currentUser = useAppSelector((state) => state.user);
@@ -33,7 +34,7 @@ function LessonsTable() {
         }
     );
 
-    // Фильтрация на клиентской стороне (если бэкенд не фильтрует должным образом)
+    // Фильтрация на клиентской стороне
     const filteredVideos = videos.filter((video) => {
         const matchesCategory = !search || 
             video.category_lesson.ct_lesson_name.toLowerCase().includes(search.toLowerCase());
@@ -43,9 +44,24 @@ function LessonsTable() {
         return matchesCategory && matchesNumber;
     });
 
+    // Видимые видео (только первые visibleCount штук)
+    const visibleVideos = filteredVideos.slice(0, visibleCount);
+    
+    // Есть ли еще видео для показа
+    const hasMore = filteredVideos.length > visibleCount;
+
     const handleVideoClick = (video: LESSONS.VideoListItem): void => {
         router.push(`/lessons/${video.id}`);
     };
+
+    const handleShowMore = () => {
+        setVisibleCount(prev => prev + 9); // Добавляем еще 9 уроков
+    };
+
+    // Сброс visibleCount при изменении фильтров
+    React.useEffect(() => {
+        setVisibleCount(9);
+    }, [search, lessonNumber]);
 
     return (
         <section className={style.LessonsTable}>
@@ -85,8 +101,8 @@ function LessonsTable() {
                             <p className={style.empty}>У вас нет назначенного курса</p>
                         ) : isLoading ? (
                             <p className={style.empty}>Загрузка...</p>
-                        ) : filteredVideos.length > 0 ? (
-                            filteredVideos.map((video) => (
+                        ) : visibleVideos.length > 0 ? (
+                            visibleVideos.map((video) => (
                                 <div
                                     key={video.id}
                                     className={style.card}
@@ -106,6 +122,17 @@ function LessonsTable() {
                             <p className={style.empty}>Ничего не найдено 😕</p>
                         )}
                     </div>
+
+                    {hasMore && (
+                        <div className={style.showMoreContainer}>
+                            <button 
+                                className={style.showMoreButton}
+                                onClick={handleShowMore}
+                            >
+                                Показать больше ({filteredVideos.length - visibleCount} осталось)
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </section>
