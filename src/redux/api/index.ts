@@ -16,6 +16,7 @@ interface RefreshTokenResponse {
 const baseQuery = fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_MOTIONCOURSE_API,
     prepareHeaders: (headers) => {
+        console.log("🔍 [API] Base URL:", process.env.NEXT_PUBLIC_MOTIONCOURSE_API);
         const token = Cookies.get("access_token");
         if (token) {
             headers.set("Authorization", `Bearer ${token}`);

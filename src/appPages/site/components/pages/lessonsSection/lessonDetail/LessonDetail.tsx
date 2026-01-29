@@ -204,12 +204,7 @@ function LessonDetailContent() {
                                         </h2>
                                     </div>
 
-                                    <div className={style.dataBlock}>
-                                        <h2 className={style.dataTitle}>Дата создания курса:</h2>
-                                        <h2 className={style.data}>
-                                            {courseDetail.created_at}
-                                        </h2>
-                                    </div>
+                                 
                                 </>
                             )}
 
