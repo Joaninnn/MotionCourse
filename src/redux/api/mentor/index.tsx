@@ -3,12 +3,12 @@ import { api as index } from "..";
 const api = index.injectEndpoints({
     endpoints: (build) => ({
         // Получить все видео ментора
-        getMentorVideos: build.query<MENTOR.GetVideosResponse, void>({
+        getMentorVideos: build.query<MENTOR.VideoResponse[], void>({
             query: () => ({
                 url: `/mentor/videos/`,
                 method: "GET",
             }),
-            providesTags: ["mentor"],
+            providesTags: ["mentor", "video"],
         }),
 
         // Получить детали видео
@@ -34,7 +34,6 @@ const api = index.injectEndpoints({
                     formData.append("description", data.description);
                 }
 
-                // Логирование FormData для отладки
                 console.log("🔍 [MENTOR_API] FormData being sent:");
                 for (const [key, value] of formData.entries()) {
                     console.log(`  ${key}:`, value instanceof File ? `File(${value.name}, ${value.size} bytes)` : value);
@@ -60,7 +59,7 @@ const api = index.injectEndpoints({
         }),
 
         // Удалить видео
-        deleteVideo: build.mutation<void, MENTOR.DeleteVideoRequest>({
+        deleteVideo: build.mutation<void, number>({
             query: (id) => ({
                 url: `video-update/${id}/`,
                 method: "DELETE",
@@ -76,19 +75,4 @@ export const {
     useCreateVideoMutation,
     useUpdateVideoMutation,
     useDeleteVideoMutation,
-} = api;        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+} = api;

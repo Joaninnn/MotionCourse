@@ -4,128 +4,179 @@ import React, { useState } from "react";
 import style from "./UploadedVideos.module.scss";
 import defaultIcon from "@/assets/Icons/videoIcon.png";
 import Image from "next/image";
-import { useGetMentorVideosQuery, useDeleteVideoMutation } from "@/redux/api/mentor";
-import Upload from "../Upload/Upload";
+import { 
+    useGetMentorVideosQuery,
+    useDeleteVideoMutation 
+} from "@/redux/api/mentor";
+import { useAppSelector } from "@/redux/hooks";
 
-function UploadedVideos() {
-    const { data: videos = [], isLoading, refetch } = useGetMentorVideosQuery();
-    const [deleteVideo] = useDeleteVideoMutation();
+interface UploadedVideosProps {
+    editingId?: number | null;
+    setEditingId?: (id: number | null) => void;
+}
+
+function UploadedVideos({ editingId: externalEditingId, setEditingId: externalSetEditingId }: UploadedVideosProps) {
+    const currentUser = useAppSelector((state) => state.user);
     const [search, setSearch] = useState("");
-    const [editingId, setEditingId] = useState<number | null>(null);
 
-    // Отладочный лог для проверки данных
-    console.log("🔍 [UPLOADED_VIDEOS] Videos data:", videos);
-    console.log("🔍 [UPLOADED_VIDEOS] Is loading:", isLoading);
+    // Получаем видео ментора через новый эндпоинт
+    const { data: videos = [], isLoading, error } = useGetMentorVideosQuery(
+        undefined,
+        {
+            skip: !currentUser,
+        }
+    );
+
+    const [deleteVideo, { isLoading: isDeleting }] = useDeleteVideoMutation();
+
+    // Извлекаем видео из вложенной структуры
+    const extractedVideos = videos.reduce((acc, mentorVideo) => {
+        if (mentorVideo?.teaching_courses) {
+            mentorVideo.teaching_courses.forEach(course => {
+                if (course?.video_course) {
+                    acc.push(...course.video_course);
+                }
+            });
+        }
+        return acc;
+    }, []);
+
+    console.log("📊 [UPLOADED_VIDEOS] State:", {
+        currentUser: !!currentUser,
+        videosCount: videos.length,
+        extractedVideosCount: extractedVideos.length,
+        isLoading,
+        error,
+        videosData: JSON.parse(JSON.stringify(videos)), // Deep clone for logging
+        extractedVideos,
+    });
 
     const handleEdit = (id: number) => {
-        setEditingId(id);
-    };
-
-    const handleCancelEdit = () => {
-        setEditingId(null);
-        refetch();
+        console.log("✏️ [UPLOADED_VIDEOS] Editing video:", id);
+        externalSetEditingId?.(id);
     };
 
     const handleDelete = async (id: number) => {
         if (window.confirm("Вы уверены, что хотите удалить это видео?")) {
             try {
-                await deleteVideo({ id: id }).unwrap();
+                console.log("🗑️ [UPLOADED_VIDEOS] Deleting video:", id);
+                await deleteVideo(id).unwrap();
                 alert("Видео успешно удалено!");
-                refetch();
-            } catch (error) {
-                console.error("Error:", error);
-                alert("Ошибка при удалении видео");
+            } catch (error: any) {
+                console.error("❌ [UPLOADED_VIDEOS] Delete error:", error);
+                
+                if (error?.status === 403) {
+                    alert("Ошибка: У вас нет прав на удаление этого видео");
+                } else {
+                    alert("Ошибка при удалении видео");
+                }
             }
         }
     };
 
-    const filteredData = (Array.isArray(videos) ? videos : []).filter((item) => {
-        // Дополнительная проверка что item является объектом
+    const filteredData = (Array.isArray(extractedVideos) ? extractedVideos : []).filter((item) => {
         if (!item || typeof item !== 'object') return false;
         
+        const searchLower = search.toLowerCase();
+        const categoryName = typeof item.category_lesson === 'object' 
+            ? item.category_lesson?.ct_lesson_name 
+            : item.category_lesson;
+            
         const matchesSearch = 
-            (item.course?.toString() || "").includes(search.toLowerCase()) ||
-            (item.category_lesson?.toString() || "").includes(search.toLowerCase()) ||
-            (item.description || "").toLowerCase().includes(search.toLowerCase());
+            (item.course?.toString() || "").includes(searchLower) ||
+            (categoryName || "").toLowerCase().includes(searchLower) ||
+            (item.lesson_number?.toString() || "").includes(searchLower) ||
+            (item.description || "").toLowerCase().includes(searchLower);
 
         return matchesSearch;
     });
+
+    console.log("🔍 [UPLOADED_VIDEOS] Filtered videos:", filteredData.length);
 
     return (
         <section className={style.UploadedVideos}>
             <div className="container">
                 <div className={style.content}>
                     <h2 className={style.title}>
-                        Загруженные видео ({filteredData.length})
+                        Загруженные видео ({extractedVideos.length})
                     </h2>
                     <div className={style.filterBlock}>
                         <input
-                            placeholder="поиск по курсу, категории или описанию"
+                            placeholder="поиск по курсу, категории или номеру урока"
                             type="text"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className={style.Name}
                         />
                     </div>
+
                     <div className={style.videoBlock}>
-                        {isLoading ? (
+                        {!currentUser ? (
+                            <p className={style.empty}>Вы не авторизованы</p>
+                        ) : isLoading ? (
                             <p className={style.empty}>Загрузка...</p>
+                        ) : error ? (
+                            <p className={style.empty}>Ошибка загрузки видео</p>
                         ) : filteredData.length > 0 ? (
-                            filteredData.map((item, index) => (
-                                <div key={item.id || `video-${index}`} className={style.card}>
-                                    <div className={style.content}>
-                                        <div className={style.imageWrapper}>
-                                            <Image
-                                                className={style.videoIcon}
-                                                src={item.video || defaultIcon}
-                                                alt="videoIcon"
-                                                fill
-                                                unoptimized
-                                            />
-                                        </div>
-                                        <div className={style.cardInfo}>
-                                            <h2 className={style.lessonName}>
-                                                Курс: {item.course || 'Не указан'}
-                                            </h2>
-                                            <span className={style.lessonDesc}>
-                                                Категория: {item.category_lesson || 'Не указана'}
-                                            </span>
-                                            <div className={style.infoLastBlock}>
-                                                <h2 className={style.lessonTheme}>
-                                                    Урок №{item.lesson_number || 'Не указан'}
+                            filteredData.map((item, index) => {
+                                const categoryName = typeof item.category_lesson === 'object'
+                                    ? item.category_lesson?.ct_lesson_name
+                                    : item.category_lesson;
+
+                                return (
+                                    <div key={item.id || `video-${index}`} className={style.card}>
+                                        <div className={style.content}>
+                                            <div className={style.imageWrapper}>
+                                                <Image
+                                                    className={style.videoIcon}
+                                                    src={defaultIcon}
+                                                    alt="videoIcon"
+                                                    fill
+                                                    unoptimized
+                                                />
+                                            </div>
+                                            <div className={style.cardInfo}>
+                                                <h2 className={style.lessonName}>
+                                                    Курс: {item.course || 'Не указан'}
                                                 </h2>
-                                                <h2 className={style.lessonData}>
-                                                    {item.description || 'Нет описания'}
-                                                </h2>
+                                                <span className={style.lessonDesc}>
+                                                    Категория: {categoryName || 'Не указана'}
+                                                </span>
+                                                <div className={style.infoLastBlock}>
+                                                    <h2 className={style.lessonTheme}>
+                                                        Урок №{item.lesson_number || 'Не указан'}
+                                                    </h2>
+                                                    <h2 className={style.lessonData}>
+                                                        {item.description || 'Нет описания'}
+                                                    </h2>
+                                                </div>
                                             </div>
                                         </div>
+                                        <div className={style.buttons}>
+                                            <button 
+                                                className={style.edit}
+                                                onClick={() => item.id && handleEdit(item.id)}
+                                                disabled={isDeleting}
+                                            >
+                                                Редактировать
+                                            </button>
+                                            <button 
+                                                className={style.delete}
+                                                onClick={() => item.id && handleDelete(item.id)}
+                                                disabled={isDeleting}
+                                            >
+                                                {isDeleting ? 'Удаление...' : 'Удалить'}
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div className={style.buttons}>
-                                        <button 
-                                            className={style.edit}
-                                            onClick={() => item.id && handleEdit(item.id)}
-                                        >
-                                            Редактировать
-                                        </button>
-                                        <button 
-                                            className={style.delete}
-                                            onClick={() => item.id && handleDelete(item.id)}
-                                        >
-                                            Удалить
-                                        </button>
-                                    </div>
-                                </div>
-                            ))
+                                );
+                            })
                         ) : (
-                            <p className={style.empty}>Ничего не найдено 😕</p>
+                            <p className={style.empty}>
+                                Нет загруженных видео. Загрузите первое видео!
+                            </p>
                         )}
                     </div>
-                    {editingId && (
-                        <Upload 
-                            editingId={editingId} 
-                            onCancel={handleCancelEdit}
-                        />
-                    )}
                 </div>
             </div>
         </section>

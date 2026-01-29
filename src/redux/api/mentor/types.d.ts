@@ -1,18 +1,16 @@
-
-
 namespace MENTOR {
     interface CategoryLesson {
         id: number;
         ct_lesson_name: string;
     }
 
-    interface VideoItem {
+    interface VideoResponse {
         id: number;
         course: number;
-        category_lesson: number;
+        category_lesson: CategoryLesson | number;
         video: string;
         lesson_number: number;
-        description: string;
+        description?: string;
     }
 
     // Типы для создания/обновления видео
@@ -32,21 +30,10 @@ namespace MENTOR {
         description?: string;
     }
 
-    interface DeleteVideoRequest {
-        id: number;
-    }
-
-    interface VideoResponse {
-        id: number;
-        course: number;
-        category_lesson: number;
-        video: string;
-        lesson_number: number;
-        description: string;
-    }
+    type VideoItem = VideoResponse
 
     // Response types
-    type GetVideosResponse = VideoItem[];
+    type GetVideosResponse = VideoResponse[];
     type GetVideoDetailResponse = VideoResponse;
     type CreateVideoResponse = VideoResponse;
     type UpdateVideoResponse = VideoResponse;

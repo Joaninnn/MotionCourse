@@ -79,13 +79,20 @@ function Upload({ editingId, onCancel }: UploadProps) {
             });
 
             if (editingId) {
-                await updateVideo({
+                const updateData: any = {
                     id: editingId,
                     course: parseInt(formData.course),
                     category_lesson: parseInt(formData.category_lesson),
                     lesson_number: parseInt(formData.lesson_number) || undefined,
                     description: formData.description || undefined,
-                }).unwrap();
+                };
+                
+                // Добавляем видео только если выбрали новое
+                if (formData.videoFile) {
+                    updateData.video = formData.videoFile;
+                }
+                
+                await updateVideo(updateData).unwrap();
                 alert("Видео успешно обновлено!");
                 onCancel?.();
             } else {

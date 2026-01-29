@@ -10,7 +10,7 @@ const api = index.injectEndpoints({
             query: (params) => ({
                 url: `video`,
                 method: "GET",
-                params, // передаем query-параметры, если есть
+                params, // пере даем query-параметры, если есть
             }),
             providesTags: ["video"],
         }),
