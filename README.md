@@ -1,186 +1,186 @@
 # MotionCourse Platform
 
-## 🎓 Обзор
+## 🎓 Overview
 
-MotionCourse - это современная образовательная платформа, разработанная на Next.js 15, которая позволяет менторам создавать, управлять и распространять видеокурсы. Платформа предоставляет интуитивный интерфейс для загрузки видео, организации уроков по категориям и управления образовательным контентом.
+MotionCourse is a modern educational platform built on Next.js 15 that enables mentors to create, manage, and distribute video courses. The platform provides an intuitive interface for uploading videos, organizing lessons by categories, and managing educational content.
 
-## ✨ Ключевые возможности
+## ✨ Key Features
 
-### 🎥 Управление видеоконтентом
-- **Загрузка видео**: Простая и удобная загрузка видеоконтента с поддержкой формата MP4
-- **Редактирование**: Полное редактирование информации о видео (курс, категория, номер урока, описание)
-- **Организация**: Систематизация видео по курсам и категориям уроков
-- **Удаление**: Безопасное удаление видеоконтента с подтверждением
+### 🎥 Video Content Management
+- **Video Upload**: Simple and convenient video content upload with MP4 format support
+- **Editing**: Full video information editing (course, category, lesson number, description)
+- **Organization**: Systematization of videos by courses and lesson categories
+- **Deletion**: Secure video content deletion with confirmation
 
-### 👥 Ролевая система
-- **Менторы**: Полный доступ к созданию и управлению видеоконтентом
-- **Студенты**: Просмотр и изучение доступных курсов, общение с менторами
-- **Администраторы**: Управление пользователями и контентом
+### 👥 Role System
+- **Mentors**: Full access to video content creation and management
+- **Students**: Viewing and studying available courses, communicating with mentors
+- **Administrators**: User and content management
 
-### 💬 Система общения
-- **Личные чаты**: Прямое общение студентов с менторами
-- **Групповые чаты**: Обсуждения в рамках курсов и тем
-- **Обмен медиа**: Отправка видео и фото для демонстрации ошибок и вопросов
-- **Мгновенные уведомления**: Оперативные ответы на вопросы студентов
+### 💬 Communication System
+- **Private Chats**: Direct communication between students and mentors
+- **Group Chats**: Discussions within courses and topics
+- **Media Exchange**: Sending videos and photos to demonstrate errors and questions
+- **Instant Notifications**: Prompt responses to student questions
 
-### 🔐 Безопасность и аутентификация
-- **JWT-токены**: Надежная система аутентификации с refresh токенами
-- **Ролевые разрешения**: Контроль доступа на основе ролей пользователей
-- **Защита API**: Безопасная передача данных между фронтендом и бэкендом
+### 🔐 Security and Authentication
+- **JWT Tokens**: Reliable authentication system with refresh tokens
+- **Role-based Permissions**: Access control based on user roles
+- **API Protection**: Secure data transfer between frontend and backend
 
-## 🛠️ Технологический стек
+## 🛠️ Technology Stack
 
 ### Frontend
-- **Next.js 15** - React-фреймворк с SSR/SSG
-- **React 18.3** - Библиотека для построения пользовательских интерфейсов
-- **TypeScript 5** - Статическая типизация для надежности кода
-- **Redux Toolkit** - Управление состоянием приложения
-- **SCSS Modules** - Модульные стили для компонентов
-- **Framer Motion** - Анимации и переходы
-- **React Hook Form** - Управление формами
+- **Next.js 15** - React framework with SSR/SSG
+- **React 18.3** - Library for building user interfaces
+- **TypeScript 5** - Static typing for code reliability
+- **Redux Toolkit** - Application state management
+- **SCSS Modules** - Modular component styles
+- **Framer Motion** - Animations and transitions
+- **React Hook Form** - Form management
 
 ### UI/UX
-- **Material-UI (MUI)** - Современная библиотека компонентов
-- **Tailwind CSS 4** - Утилитарный CSS-фреймворк
-- **React Icons** - Иконки для интерфейса
-- **React Slick** - Карусели и слайдеры
+- **Material-UI (MUI)** - Modern component library
+- **Tailwind CSS 4** - Utility CSS framework
+- **React Icons** - Interface icons
+- **React Slick** - Carousels and sliders
 
 ### Backend Integration
-- **RTK Query** - Эффективное управление API-запросами
-- **Axios** - HTTP-клиент для взаимодействия с API
-- **js-cookie** - Управление cookie для токенов
-- **WebSocket** - Реальное время для чатов и уведомлений
-- **Socket.io** - Обработка событий в реальном времени
+- **RTK Query** - Efficient API request management
+- **Axios** - HTTP client for API interaction
+- **js-cookie** - Token cookie management
+- **WebSocket** - Real-time for chats and notifications
+- **Socket.io** - Real-time event handling
 
-## 🚀 Быстрый старт
+## 🚀 Quick Start
 
-### Требования
+### Requirements
 - Node.js 18+
-- npm или pnpm
+- npm or pnpm
 
-### Установка
+### Installation
 ```bash
-# Клонирование репозитория
+# Clone repository
 git clone <repository-url>
 cd motionCourses
 
-# Установка зависимостей
+# Install dependencies
 npm install
-# или
+# or
 pnpm install
 
-# Запуск development сервера
+# Start development server
 npm run dev
-# или
+# or
 pnpm dev
 ```
 
-### Переменные окружения
-Создайте файл `.env` в корне проекта:
+### Environment Variables
+Create `.env` file in project root:
 ```env
 NEXT_PUBLIC_MOTIONCOURSE_API=http://your-api-url
 ```
 
-## 📁 Структура проекта
+## 📁 Project Structure
 
 ```
 src/
-├── appPages/                 # Страницы приложения
-│   ├── auth/                # Аутентификация
-│   └── site/                # Основные страницы
-│       ├── components/      # Компоненты страниц
-│       │   └── pages/       # Отдельные страницы
-│       └── layout/          # Layout компоненты
-├── assets/                  # Статические ресурсы
-├── components/              # Общие компоненты
-├── redux/                   # Redux store и API
-│   ├── api/                # RTK Query эндпоинты
-│   └── store/              # Конфигурация Redux
-└── provider/               # Провайдеры приложения
+├── appPages/                 # Application pages
+│   ├── auth/                # Authentication
+│   └── site/                # Main pages
+│       ├── components/      # Page components
+│       │   └── pages/       # Individual pages
+│       └── layout/          # Layout components
+├── assets/                  # Static resources
+├── components/              # Common components
+├── redux/                   # Redux store and API
+│   ├── api/                # RTK Query endpoints
+│   └── store/              # Redux configuration
+└── provider/               # Application providers
 ```
 
-## 🎯 Основные компоненты
+## 🎯 Main Components
 
 ### Mentor Section
-- **Upload**: Компонент для загрузки и редактирования видео
-- **UploadedVideos**: Список загруженных видео с функциями управления
-- **VideoCard**: Карточка видео с превью и действиями
+- **Upload**: Video upload and editing component
+- **UploadedVideos**: List of uploaded videos with management functions
+- **VideoCard**: Video card with preview and actions
 
-### Система общения
-- **ChatInterface**: Основной интерфейс чата с списком комнат
-- **MessageList**: Компонент отображения сообщений с поддержкой медиа
-- **MessageInput**: Форма отправки сообщений с возможностью загрузки файлов
-- **ChatRoom**: Управление чат-комнатами (личные и групповые)
+### Communication System
+- **ChatInterface**: Main chat interface with room list
+- **MessageList**: Message display component with media support
+- **MessageInput**: Message sending form with file upload capability
+- **ChatRoom**: Chat room management (private and group)
 
-### Система аутентификации
-- **AuthInitializer**: Инициализация аутентификации при загрузке
-- **Header**: Навигация с учетом статуса пользователя
-- **Login/Registration**: Формы входа и регистрации
+### Authentication System
+- **AuthInitializer**: Authentication initialization on load
+- **Header**: Navigation with user status awareness
+- **Login/Registration**: Login and registration forms
 
-## 🔧 API Интеграция
+## 🔧 API Integration
 
-Платформа интегрируется с RESTful API через RTK Query:
+The platform integrates with RESTful API via RTK Query:
 
-### Основные эндпоинты
-- `/mentor/videos/` - Получение видео ментора
-- `/video-create/` - Создание нового видео
-- `/video-update/{id}/` - Обновление и удаление видео
-- `/auth/login/` - Аутентификация пользователей
-- `/chat/messages/` - Получение и отправка сообщений
-- `/chat/rooms/` - Управление чат-комнатами (личные и групповые)
-- `/chat/upload/` - Загрузка медиа файлов (видео, фото) в чаты
+### Main Endpoints
+- `/mentor/videos/` - Get mentor videos
+- `/video-create/` - Create new video
+- `/video-update/{id}/` - Update and delete video
+- `/auth/login/` - User authentication
+- `/chat/messages/` - Get and send messages
+- `/chat/rooms/` - Chat room management (private and group)
+- `/chat/upload/` - Media file upload (video, photos) to chats
 
-### Особенности
-- Автоматическое обновление токенов
-- Обработка ошибок с информативными сообщениями
-- Кэширование запросов для оптимизации
+### Features
+- Automatic token refresh
+- Informative error handling
+- Request caching for optimization
 
-## 🎨 Дизайн и UX
+## 🎨 Design and UX
 
-### Принципы
-- **Минимализм**: Чистый и понятный интерфейс
-- **Адаптивность**: Работа на всех устройствах
-- **Доступность**: Соответствие стандартам WCAG
-- **Производительность**: Оптимизированные компоненты и анимации
+### Principles
+- **Minimalism**: Clean and understandable interface
+- **Adaptability**: Works on all devices
+- **Accessibility**: WCAG compliance
+- **Performance**: Optimized components and animations
 
-### Стили
-- SCSS Modules для инкапсуляции стилей
-- Tailwind CSS для утилитарных стилей
-- Material-UI для готовых компонентов
-- Кастомные анимации через Framer Motion
+### Styles
+- SCSS Modules for style encapsulation
+- Tailwind CSS for utility styles
+- Material-UI for ready components
+- Custom animations via Framer Motion
 
-## 🚀 Развертывание
+## 🚀 Deployment
 
-### Production сборка
+### Production Build
 ```bash
 npm run build
 npm start
 ```
 
-### Оптимизация
-- Автоматическая оптимизация изображений Next.js
-- Код-сплиттинг для быстрой загрузки
-- SSR для SEO-оптимизации
-- Статическая генерация где возможно
+### Optimization
+- Automatic Next.js image optimization
+- Code splitting for fast loading
+- SSR for SEO optimization
+- Static generation where possible
 
-## 🤝 Вклад в проект
+## 🤝 Contributing
 
-1. Fork репозитория
-2. Создайте feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit изменения (`git commit -m 'Add some AmazingFeature'`)
-4. Push в branch (`git push origin feature/AmazingFeature`)
-5. Откройте Pull Request
+1. Fork repository
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
 
-## 📝 Лицензия
+## 📝 License
 
-Этот проект распространяется под лицензией MIT. Подробности в файле LICENSE.
+This project is licensed under the MIT License. Details in LICENSE file.
 
-## 📞 Контакты
+## 📞 Contacts
 
-Для вопросов и предложений:
+For questions and suggestions:
 - Email: support@motioncourse.com
-- GitHub: [ссылка на репозиторий]
+- GitHub: [repository link]
 
 ---
 
-**MotionCourse** - Сделаем образование доступным и современным! 🎓✨
+**MotionCourse** - Making education accessible and modern! 🎓✨
