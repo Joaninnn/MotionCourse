@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import style from "./UploadedVideos.module.scss";
 import defaultIcon from "@/assets/Icons/videoIcon.png";
 import Image from "next/image";
@@ -36,11 +36,16 @@ interface MentorVideoResponse {
     }>;
 }
 
+interface ToastMessage {
+    type: 'success' | 'error';
+    message: string;
+}
+
 function UploadedVideos({ setEditingId: externalSetEditingId }: UploadedVideosProps) {
     const currentUser = useAppSelector((state) => state.user);
     const [search, setSearch] = useState("");
+    const [toast, setToast] = useState<ToastMessage | null>(null);
 
-    // Получаем видео ментора через новый эндпоинт
     const mentorVideosQuery = useGetMentorVideosQuery(
         undefined,
         {
@@ -53,7 +58,20 @@ function UploadedVideos({ setEditingId: externalSetEditingId }: UploadedVideosPr
 
     const [deleteVideo, { isLoading: isDeleting }] = useDeleteVideoMutation();
 
-    // Извлекаем видео из вложенной структуры
+    // Toast auto-hide
+    useEffect(() => {
+        if (toast) {
+            const timer = setTimeout(() => {
+                setToast(null);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [toast]);
+
+    const showToast = (type: 'success' | 'error', message: string) => {
+        setToast({ type, message });
+    };
+
     const extractedVideos = videos.reduce((acc: VideoResponse[], mentorVideo: MentorVideoResponse) => {
         if (mentorVideo?.teaching_courses) {
             mentorVideo.teaching_courses.forEach((course: { video_course?: VideoResponse[] }) => {
@@ -71,13 +89,19 @@ function UploadedVideos({ setEditingId: externalSetEditingId }: UploadedVideosPr
         extractedVideosCount: extractedVideos.length,
         isLoading,
         error,
-        videosData: JSON.parse(JSON.stringify(videos)), // Deep clone for logging
+        videosData: JSON.parse(JSON.stringify(videos)),
         extractedVideos,
     });
 
     const handleEdit = (id: number) => {
         console.log("✏️ [UPLOADED_VIDEOS] Editing video:", id);
         externalSetEditingId?.(id);
+        
+        // Smooth scroll to top
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
     };
 
     const handleDelete = async (id: number) => {
@@ -85,15 +109,15 @@ function UploadedVideos({ setEditingId: externalSetEditingId }: UploadedVideosPr
             try {
                 console.log("🗑️ [UPLOADED_VIDEOS] Deleting video:", id);
                 await deleteVideo(id).unwrap();
-                alert("Видео успешно удалено!");
+                showToast('success', 'Видео успешно удалено!');
             } catch (error: unknown) {
                 console.error("❌ [UPLOADED_VIDEOS] Delete error:", error);
                 
                 const errorObj = error as { status?: number };
                 if (errorObj?.status === 403) {
-                    alert("Ошибка: У вас нет прав на удаление этого видео");
+                    showToast('error', 'У вас нет прав на удаление этого видео');
                 } else {
-                    alert("Ошибка при удалении видео");
+                    showToast('error', 'Ошибка при удалении видео');
                 }
             }
         }
@@ -120,6 +144,12 @@ function UploadedVideos({ setEditingId: externalSetEditingId }: UploadedVideosPr
 
     return (
         <section className={style.UploadedVideos}>
+            {toast && (
+                <div className={`${style.toast} ${style[toast.type]}`}>
+                    <span>{toast.message}</span>
+                    <button onClick={() => setToast(null)} className={style.closeToast}>×</button>
+                </div>
+            )}
             <div className="container">
                 <div className={style.content}>
                     <h2 className={style.title}>
@@ -139,7 +169,10 @@ function UploadedVideos({ setEditingId: externalSetEditingId }: UploadedVideosPr
                         {!currentUser ? (
                             <p className={style.empty}>Вы не авторизованы</p>
                         ) : isLoading ? (
-                            <p className={style.empty}>Загрузка...</p>
+                            <div className={style.loader}>
+                                <div className={style.spinner}></div>
+                                <p>Загрузка...</p>
+                            </div>
                         ) : error ? (
                             <p className={style.empty}>Ошибка загрузки видео</p>
                         ) : filteredData.length > 0 ? (
@@ -198,7 +231,7 @@ function UploadedVideos({ setEditingId: externalSetEditingId }: UploadedVideosPr
                             })
                         ) : (
                             <p className={style.empty}>
-                                Нет загруженных видео. Загрузите первое видео!
+                                {search ? 'Ничего не найдено по вашему запросу' : 'Нет загруженных видео. Загрузите первое видео!'}
                             </p>
                         )}
                     </div>

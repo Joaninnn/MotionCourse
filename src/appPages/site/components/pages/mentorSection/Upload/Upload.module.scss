@@ -1,22 +1,88 @@
 .Upload {
     background: black;
+    position: relative;
+
+    .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 16px 24px;
+        border-radius: 8px;
+        color: white;
+        font-size: 16px;
+        font-weight: 500;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: slideIn 0.3s ease-out;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        border: 2px solid white;
+
+        &.success {
+            background: #00aa00;
+            box-shadow: 0 4px 12px rgba(0, 170, 0, 0.4), 5px 5px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        &.error {
+            background: #ff0000;
+            box-shadow: 0 4px 12px rgba(255, 0, 0, 0.4), 5px 5px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .closeToast {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+
+            &:hover {
+                transform: scale(1.2);
+            }
+        }
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
     .content {
         display: flex;
         flex-direction: column;
         gap: 40px;
+
         .title {
             padding: 30px 0 0 0;
             font-size: 55px;
             color: red;
+            transition: font-size 0.3s ease;
         }
+
         .preview {
             display: flex;
             flex-direction: column;
             gap: 40px;
+
             .previewTitle {
                 color: red;
                 font-size: 24px;
+                transition: font-size 0.3s ease;
             }
+
             .previewBlock {
                 padding: 20px;
                 display: flex;
@@ -25,37 +91,47 @@
                 transition: all 0.3s ease-in-out;
                 border: 2px solid white;
                 box-shadow: 8px 8px 0 rgb(255, 0, 0);
+
                 .image {
                     padding: 10px;
                     border: 2px solid white;
                     object-fit: cover;
+                    transition: all 0.3s ease;
                 }
+
                 .info {
                     display: flex;
                     flex-direction: column;
                     gap: 10px;
+                    flex: 1;
+
                     .lessonName {
                         color: white;
                         font-size: 20px;
+                        transition: font-size 0.3s ease;
                     }
+
                     .lessonDesc {
                         color: gray;
+                        transition: font-size 0.3s ease;
                     }
+
                     .infoLastBlock {
                         display: flex;
                         flex-direction: row;
                         gap: 50px;
-                        .lessonTheme {
-                            color: gray;
-                            font-size: 14px;
-                        }
+                        flex-wrap: wrap;
+
+                        .lessonTheme,
                         .lessonData {
                             color: gray;
                             font-size: 14px;
+                            transition: font-size 0.3s ease;
                         }
                     }
                 }
             }
+
             .UploadBlock {
                 display: flex;
                 flex-direction: column;
@@ -64,18 +140,24 @@
                 transition: all 0.3s ease-in-out;
                 border: 2px solid white;
                 box-shadow: 8px 8px 0 rgb(255, 0, 0);
+
                 .inputs {
                     display: grid;
                     grid-template-columns: 1fr 1fr;
                     gap: 15px;
+                    transition: grid-template-columns 0.3s ease;
+
                     .inputBlock {
                         display: flex;
                         flex-direction: column;
                         gap: 10px;
+
                         .inputTitle {
                             color: white;
                             font-size: 18px;
+                            transition: font-size 0.3s ease;
                         }
+
                         .input {
                             padding: 10px;
                             font-size: 25px;
@@ -85,36 +167,41 @@
                             transition: all 0.3s ease-in-out;
                             border: 2px solid white;
                             box-shadow: 5px 5px 0 rgb(255, 0, 0);
+
+                            &:focus {
+                                outline: none;
+                                box-shadow: 8px 8px 0 rgb(255, 0, 0);
+                                transform: translateY(-2px);
+                            }
+
+                            &.error {
+                                border-color: #ff4444;
+                                box-shadow: 5px 5px 0 rgba(255, 68, 68, 0.8);
+                                animation: shake 0.3s ease-in-out;
+                            }
+                        }
+
+                        .errorMessage {
+                            color: #ff4444;
+                            font-size: 14px;
+                            margin-top: -5px;
+                            animation: fadeIn 0.3s ease-in-out;
                         }
                     }
                 }
-                .inputBlock {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 10px;
-                    .inputTitle {
-                        color: white;
-                        font-size: 18px;
-                    }
-                    .input {
-                        padding: 10px;
-                        font-size: 25px;
-                        color: white;
-                        border: white 1px solid;
-                        background: black;
-                        transition: all 0.3s ease-in-out;
-                        border: 2px solid white;
-                        box-shadow: 5px 5px 0 rgb(255, 0, 0);
-                    }
-                }
+
+                .inputBlock,
                 .descInput {
                     display: flex;
                     flex-direction: column;
                     gap: 10px;
+
                     .inputTitle {
                         color: white;
                         font-size: 18px;
+                        transition: font-size 0.3s ease;
                     }
+
                     .input {
                         padding: 10px;
                         font-size: 25px;
@@ -124,46 +211,467 @@
                         transition: all 0.3s ease-in-out;
                         border: 2px solid white;
                         box-shadow: 5px 5px 0 rgb(255, 0, 0);
+
+                        &:focus {
+                            outline: none;
+                            box-shadow: 8px 8px 0 rgb(255, 0, 0);
+                            transform: translateY(-2px);
+                        }
+
+                        &.error {
+                            border-color: #ff4444;
+                            box-shadow: 5px 5px 0 rgba(255, 68, 68, 0.8);
+                            animation: shake 0.3s ease-in-out;
+                        }
+                    }
+
+                    .errorMessage {
+                        color: #ff4444;
+                        font-size: 14px;
+                        margin-top: -5px;
+                        animation: fadeIn 0.3s ease-in-out;
                     }
                 }
+
                 .buttonGroup {
                     display: flex;
                     gap: 15px;
-                    .cancel {
-                        border: white 1px solid;
-                        background: black;
-                        color: white;
-                        transition: all 0.3s ease-in-out;
+                    flex-wrap: wrap;
+
+                    .cancel,
+                    .load {
                         border: 2px solid white;
-                        padding: 10px;
+                        padding: 10px 20px;
                         font-size: 25px;
                         font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease-in-out;
+                        flex: 1;
+                        min-width: 200px;
+                    }
+
+                    .cancel {
+                        background: black;
+                        color: white;
                         box-shadow: 5px 5px 0 rgb(255, 0, 0);
+
                         &:hover {
                             background-color: #333;
                             color: white;
-                            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.5);
-                            transform: translateY(-2px);
+                            box-shadow: 8px 8px 0 rgba(255, 0, 0, 0.8);
+                            transform: translate(-2px, -2px);
+                        }
+
+                        &:active {
+                            box-shadow: 3px 3px 0 rgb(255, 0, 0);
+                            transform: translate(2px, 2px);
+                        }
+                    }
+
+                    .load {
+                        background: red;
+                        color: white;
+                        box-shadow: 5px 5px 0 rgb(139, 0, 0);
+
+                        &:hover:not(:disabled) {
+                            background-color: #ff0000;
+                            box-shadow: 8px 8px 0 rgba(139, 0, 0, 0.8);
+                            transform: translate(-2px, -2px);
+                        }
+
+                        &:active:not(:disabled) {
+                            box-shadow: 3px 3px 0 rgb(139, 0, 0);
+                            transform: translate(2px, 2px);
+                        }
+
+                        &:disabled {
+                            opacity: 0.6;
+                            cursor: not-allowed;
                         }
                     }
                 }
-                .load {
-                    border: white 1px solid;
-                    background: red;
-                    color: white;
-                    transition: all 0.3s ease-in-out;
-                    border: 2px solid white;
-                    padding: 10px;
-                    font-size: 25px;
-                    font-weight: 600;
-                    box-shadow: 5px 5px 0 rgb(255, 0, 0);
-                    &:hover {
-                        background-color: #ff0000;
-                        color: white;
-                        box-shadow: 0 5px 15px rgba(255, 0, 0, 0.5);
-                        transform: translateY(-2px);
+            }
+        }
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
+
+// Tablet (1024px)
+@media (max-width: 1024px) {
+    .Upload {
+        .content {
+            gap: 30px;
+
+            .title {
+                font-size: 45px;
+                padding: 25px 0 0 0;
+            }
+
+            .preview {
+                gap: 30px;
+
+                .previewTitle {
+                    font-size: 22px;
+                }
+
+                .previewBlock {
+                    padding: 15px;
+                    gap: 15px;
+
+                    .info {
+                        .lessonName {
+                            font-size: 18px;
+                        }
+
+                        .lessonDesc {
+                            font-size: 14px;
+                        }
+
+                        .infoLastBlock {
+                            gap: 30px;
+
+                            .lessonTheme,
+                            .lessonData {
+                                font-size: 13px;
+                            }
+                        }
                     }
                 }
+
+                .UploadBlock {
+                    padding: 15px;
+                    gap: 15px;
+
+                    .inputs {
+                        .inputBlock {
+                            .inputTitle {
+                                font-size: 16px;
+                            }
+
+                            .input {
+                                font-size: 20px;
+                                padding: 8px;
+                            }
+
+                            .errorMessage {
+                                font-size: 13px;
+                            }
+                        }
+                    }
+
+                    .inputBlock,
+                    .descInput {
+                        .inputTitle {
+                            font-size: 16px;
+                        }
+
+                        .input {
+                            font-size: 20px;
+                            padding: 8px;
+                        }
+
+                        .errorMessage {
+                            font-size: 13px;
+                        }
+                    }
+
+                    .buttonGroup {
+                        .cancel,
+                        .load {
+                            font-size: 20px;
+                            padding: 8px 16px;
+                            min-width: 180px;
+                        }
+                    }
+                }
+            }
+        }
+
+        .toast {
+            right: 15px;
+            top: 15px;
+            padding: 14px 20px;
+            font-size: 15px;
+        }
+    }
+}
+
+// Tablet Small (768px)
+@media (max-width: 768px) {
+    .Upload {
+        .content {
+            gap: 25px;
+
+            .title {
+                font-size: 35px;
+                padding: 20px 0 0 0;
+            }
+
+            .preview {
+                gap: 25px;
+
+                .previewTitle {
+                    font-size: 20px;
+                }
+
+                .previewBlock {
+                    flex-direction: column;
+                    padding: 15px;
+                    gap: 15px;
+
+                    .image {
+                        width: 100%;
+                        height: auto;
+                    }
+
+                    .info {
+                        .lessonName {
+                            font-size: 18px;
+                        }
+
+                        .lessonDesc {
+                            font-size: 14px;
+                        }
+
+                        .infoLastBlock {
+                            gap: 20px;
+
+                            .lessonTheme,
+                            .lessonData {
+                                font-size: 12px;
+                            }
+                        }
+                    }
+                }
+
+                .UploadBlock {
+                    padding: 15px;
+                    gap: 15px;
+
+                    .inputs {
+                        grid-template-columns: 1fr;
+
+                        .inputBlock {
+                            .inputTitle {
+                                font-size: 16px;
+                            }
+
+                            .input {
+                                font-size: 18px;
+                                padding: 8px;
+                            }
+                        }
+                    }
+
+                    .inputBlock,
+                    .descInput {
+                        .inputTitle {
+                            font-size: 16px;
+                        }
+
+                        .input {
+                            font-size: 18px;
+                            padding: 8px;
+                        }
+                    }
+
+                    .buttonGroup {
+                        gap: 12px;
+
+                        .cancel,
+                        .load {
+                            font-size: 18px;
+                            padding: 8px 16px;
+                            min-width: 150px;
+                        }
+                    }
+                }
+            }
+        }
+
+        .toast {
+            right: 10px;
+            left: 10px;
+            top: 10px;
+            padding: 12px 16px;
+            font-size: 14px;
+        }
+    }
+}
+
+// Mobile (480px)
+@media (max-width: 480px) {
+    .Upload {
+        .content {
+            gap: 20px;
+
+            .title {
+                font-size: 28px;
+                padding: 15px 0 0 0;
+            }
+
+            .preview {
+                gap: 20px;
+
+                .previewTitle {
+                    font-size: 18px;
+                }
+
+                .previewBlock {
+                    padding: 12px;
+                    gap: 12px;
+                    box-shadow: 5px 5px 0 rgb(255, 0, 0);
+
+                    .image {
+                        padding: 8px;
+                    }
+
+                    .info {
+                        gap: 8px;
+
+                        .lessonName {
+                            font-size: 16px;
+                        }
+
+                        .lessonDesc {
+                            font-size: 13px;
+                        }
+
+                        .infoLastBlock {
+                            flex-direction: column;
+                            gap: 8px;
+
+                            .lessonTheme,
+                            .lessonData {
+                                font-size: 12px;
+                            }
+                        }
+                    }
+                }
+
+                .UploadBlock {
+                    padding: 12px;
+                    gap: 12px;
+                    box-shadow: 5px 5px 0 rgb(255, 0, 0);
+
+                    .inputs {
+                        gap: 12px;
+
+                        .inputBlock {
+                            gap: 8px;
+
+                            .inputTitle {
+                                font-size: 14px;
+                            }
+
+                            .input {
+                                font-size: 16px;
+                                padding: 8px;
+                                box-shadow: 3px 3px 0 rgb(255, 0, 0);
+
+                                &:focus {
+                                    box-shadow: 5px 5px 0 rgb(255, 0, 0);
+                                }
+
+                                &.error {
+                                    box-shadow: 3px 3px 0 rgba(255, 68, 68, 0.8);
+                                }
+                            }
+
+                            .errorMessage {
+                                font-size: 12px;
+                            }
+                        }
+                    }
+
+                    .inputBlock,
+                    .descInput {
+                        gap: 8px;
+
+                        .inputTitle {
+                            font-size: 14px;
+                        }
+
+                        .input {
+                            font-size: 16px;
+                            padding: 8px;
+                            box-shadow: 3px 3px 0 rgb(255, 0, 0);
+
+                            &:focus {
+                                box-shadow: 5px 5px 0 rgb(255, 0, 0);
+                            }
+
+                            &.error {
+                                box-shadow: 3px 3px 0 rgba(255, 68, 68, 0.8);
+                            }
+                        }
+
+                        .errorMessage {
+                            font-size: 12px;
+                        }
+                    }
+
+                    .buttonGroup {
+                        flex-direction: column;
+                        gap: 10px;
+
+                        .cancel,
+                        .load {
+                            width: 100%;
+                            font-size: 16px;
+                            padding: 10px;
+                            min-width: unset;
+                            box-shadow: 3px 3px 0 rgb(255, 0, 0);
+
+                            &:hover {
+                                box-shadow: 5px 5px 0 rgba(255, 0, 0, 0.8);
+                            }
+
+                            &:active {
+                                box-shadow: 2px 2px 0 rgb(255, 0, 0);
+                            }
+                        }
+
+                        .load {
+                            box-shadow: 3px 3px 0 rgb(139, 0, 0);
+
+                            &:hover:not(:disabled) {
+                                box-shadow: 5px 5px 0 rgba(139, 0, 0, 0.8);
+                            }
+
+                            &:active:not(:disabled) {
+                                box-shadow: 2px 2px 0 rgb(139, 0, 0);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .toast {
+            padding: 10px 14px;
+            font-size: 13px;
+
+            .closeToast {
+                font-size: 20px;
+                width: 20px;
+                height: 20px;
             }
         }
     }

@@ -1,24 +1,86 @@
 .UploadedVideos {
     padding: 45px 0;
     background: black;
+    position: relative;
+
+    .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 16px 24px;
+        border-radius: 8px;
+        color: white;
+        font-size: 16px;
+        font-weight: 500;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: slideIn 0.3s ease-out;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        border: 2px solid white;
+
+        &.success {
+            background: #00aa00;
+            box-shadow: 0 4px 12px rgba(0, 170, 0, 0.4), 5px 5px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        &.error {
+            background: #ff0000;
+            box-shadow: 0 4px 12px rgba(255, 0, 0, 0.4), 5px 5px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .closeToast {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+
+            &:hover {
+                transform: scale(1.2);
+            }
+        }
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
     .content {
         display: flex;
         flex-direction: column;
         gap: 20px;
+
         .title {
             font-size: 30px;
             color: red;
             font-weight: 600;
+            transition: font-size 0.3s ease;
         }
+
         .filterBlock {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 15px;
             margin-bottom: 20px;
+            transition: all 0.3s ease;
 
-            .Name,
-            .categories,
-            .data {
+            .Name {
                 padding: 10px;
                 font-size: 25px;
                 color: white;
@@ -30,15 +92,11 @@
                 &:focus {
                     outline: none;
                     box-shadow: 8px 8px 0 rgb(255, 0, 0);
+                    transform: translateY(-2px);
                 }
-            }
 
-            .categories {
-                cursor: pointer;
-
-                option {
-                    background: black;
-                    color: white;
+                &::placeholder {
+                    color: rgba(255, 255, 255, 0.5);
                 }
             }
         }
@@ -47,11 +105,41 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+
+            .loader {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 20px;
+                padding: 60px 20px;
+
+                .spinner {
+                    width: 50px;
+                    height: 50px;
+                    border: 3px solid rgba(255, 0, 0, 0.3);
+                    border-top: 3px solid rgb(255, 0, 0);
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                }
+
+                p {
+                    color: white;
+                    font-size: 18px;
+                }
+            }
+
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+
             .empty {
                 color: white;
                 font-size: 24px;
                 text-align: center;
                 padding: 40px;
+                transition: font-size 0.3s ease;
             }
 
             .card {
@@ -64,12 +152,19 @@
                 align-items: center;
                 gap: 20px;
                 transition: all 0.3s ease-in-out;
+                animation: fadeIn 0.5s ease-in-out;
+
+                &:hover {
+                    box-shadow: 10px 10px 0 rgb(255, 0, 0);
+                    transform: translate(-2px, -2px);
+                }
 
                 .content {
                     display: flex;
                     gap: 20px;
                     flex-direction: row;
                     flex: 1;
+                    transition: all 0.3s ease;
 
                     .imageWrapper {
                         position: relative;
@@ -78,12 +173,11 @@
                         padding: 10px;
                         border: 2px solid white;
                         flex-shrink: 0;
+                        transition: all 0.3s ease;
 
-                        .videoThumbnail {
-                            width: 100%;
-                            height: 100%;
+                        .videoThumbnail,
+                        .videoIcon {
                             object-fit: cover;
-                            border-radius: 8px;
                         }
 
                         .noVideoPlaceholder {
@@ -97,39 +191,41 @@
                             font-size: 12px;
                             color: #666;
                         }
-
-                        .videoIcon {
-                            object-fit: cover;
-                        }
                     }
+
                     .cardInfo {
                         display: flex;
                         flex-direction: column;
                         gap: 10px;
                         justify-content: center;
+                        flex: 1;
 
                         .lessonName {
                             color: white;
                             font-size: 20px;
                             font-weight: 600;
+                            transition: font-size 0.3s ease;
                         }
+
                         .lessonDesc {
                             color: gray;
                             font-size: 16px;
+                            transition: font-size 0.3s ease;
                         }
+
                         .infoLastBlock {
                             display: flex;
                             flex-direction: row;
                             gap: 50px;
                             margin-top: auto;
+                            flex-wrap: wrap;
+                            transition: gap 0.3s ease;
 
-                            .lessonTheme {
-                                color: gray;
-                                font-size: 14px;
-                            }
+                            .lessonTheme,
                             .lessonData {
                                 color: gray;
                                 font-size: 14px;
+                                transition: font-size 0.3s ease;
                             }
                         }
                     }
@@ -140,6 +236,7 @@
                     flex-direction: column;
                     gap: 15px;
                     flex-shrink: 0;
+                    transition: all 0.3s ease;
 
                     button {
                         padding: 12px 24px;
@@ -149,6 +246,11 @@
                         transition: all 0.3s ease-in-out;
                         border: 2px solid white;
                         min-width: 180px;
+
+                        &:disabled {
+                            opacity: 0.6;
+                            cursor: not-allowed;
+                        }
                     }
 
                     .edit {
@@ -156,12 +258,12 @@
                         background: black;
                         box-shadow: 5px 5px 0 rgb(255, 0, 0);
 
-                        &:hover {
+                        &:hover:not(:disabled) {
                             box-shadow: 8px 8px 0 rgb(255, 0, 0);
                             transform: translate(-2px, -2px);
                         }
 
-                        &:active {
+                        &:active:not(:disabled) {
                             box-shadow: 3px 3px 0 rgb(255, 0, 0);
                             transform: translate(2px, 2px);
                         }
@@ -172,18 +274,353 @@
                         background: rgb(255, 0, 0);
                         box-shadow: 5px 5px 0 rgb(139, 0, 0);
 
-                        &:hover {
+                        &:hover:not(:disabled) {
                             background: rgb(220, 0, 0);
                             box-shadow: 8px 8px 0 rgb(139, 0, 0);
                             transform: translate(-2px, -2px);
                         }
 
-                        &:active {
+                        &:active:not(:disabled) {
                             box-shadow: 3px 3px 0 rgb(139, 0, 0);
                             transform: translate(2px, 2px);
                         }
                     }
                 }
+            }
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
+
+// Tablet (1024px)
+@media (max-width: 1024px) {
+    .UploadedVideos {
+        padding: 35px 0;
+
+        .content {
+            .title {
+                font-size: 28px;
+            }
+
+            .filterBlock {
+                .Name {
+                    font-size: 20px;
+                    padding: 8px;
+                }
+            }
+
+            .videoBlock {
+                .card {
+                    padding: 15px;
+                    gap: 15px;
+                    box-shadow: 6px 6px 0 rgb(255, 0, 0);
+
+                    &:hover {
+                        box-shadow: 8px 8px 0 rgb(255, 0, 0);
+                    }
+
+                    .content {
+                        gap: 15px;
+
+                        .imageWrapper {
+                            width: 280px;
+                            height: 200px;
+                        }
+
+                        .cardInfo {
+                            .lessonName {
+                                font-size: 18px;
+                            }
+
+                            .lessonDesc {
+                                font-size: 15px;
+                            }
+
+                            .infoLastBlock {
+                                gap: 30px;
+
+                                .lessonTheme,
+                                .lessonData {
+                                    font-size: 13px;
+                                }
+                            }
+                        }
+                    }
+
+                    .buttons {
+                        button {
+                            font-size: 16px;
+                            padding: 10px 20px;
+                            min-width: 160px;
+                        }
+                    }
+                }
+
+                .empty {
+                    font-size: 22px;
+                }
+
+                .loader {
+                    p {
+                        font-size: 16px;
+                    }
+                }
+            }
+        }
+
+        .toast {
+            right: 15px;
+            top: 15px;
+            padding: 14px 20px;
+            font-size: 15px;
+        }
+    }
+}
+
+// Tablet Small (768px)
+@media (max-width: 768px) {
+    .UploadedVideos {
+        padding: 30px 0;
+
+        .content {
+            .title {
+                font-size: 26px;
+            }
+
+            .filterBlock {
+                .Name {
+                    font-size: 18px;
+                }
+            }
+
+            .videoBlock {
+                gap: 15px;
+
+                .card {
+                    flex-direction: column;
+                    padding: 15px;
+                    box-shadow: 5px 5px 0 rgb(255, 0, 0);
+
+                    &:hover {
+                        box-shadow: 7px 7px 0 rgb(255, 0, 0);
+                    }
+
+                    .content {
+                        width: 100%;
+                        flex-direction: column;
+                        gap: 15px;
+
+                        .imageWrapper {
+                            width: 100%;
+                            max-width: 400px;
+                            height: auto;
+                            aspect-ratio: 16 / 11;
+                            margin: 0 auto;
+                        }
+
+                        .cardInfo {
+                            .lessonName {
+                                font-size: 18px;
+                            }
+
+                            .lessonDesc {
+                                font-size: 15px;
+                            }
+
+                            .infoLastBlock {
+                                gap: 20px;
+
+                                .lessonTheme,
+                                .lessonData {
+                                    font-size: 13px;
+                                }
+                            }
+                        }
+                    }
+
+                    .buttons {
+                        width: 100%;
+                        flex-direction: row;
+                        gap: 12px;
+
+                        button {
+                            flex: 1;
+                            min-width: unset;
+                            font-size: 16px;
+                            padding: 10px 16px;
+                        }
+                    }
+                }
+
+                .empty {
+                    font-size: 20px;
+                    padding: 30px;
+                }
+
+                .loader {
+                    padding: 50px 20px;
+
+                    .spinner {
+                        width: 45px;
+                        height: 45px;
+                    }
+
+                    p {
+                        font-size: 16px;
+                    }
+                }
+            }
+        }
+
+        .toast {
+            right: 10px;
+            left: 10px;
+            top: 10px;
+            padding: 12px 16px;
+            font-size: 14px;
+        }
+    }
+}
+
+// Mobile (480px)
+@media (max-width: 480px) {
+    .UploadedVideos {
+        padding: 25px 0;
+
+        .content {
+            gap: 15px;
+
+            .title {
+                font-size: 22px;
+            }
+
+            .filterBlock {
+                margin-bottom: 15px;
+
+                .Name {
+                    font-size: 16px;
+                    padding: 8px;
+                    box-shadow: 3px 3px 0 rgb(255, 0, 0);
+
+                    &:focus {
+                        box-shadow: 5px 5px 0 rgb(255, 0, 0);
+                    }
+                }
+            }
+
+            .videoBlock {
+                gap: 15px;
+
+                .card {
+                    padding: 12px;
+                    gap: 12px;
+                    box-shadow: 4px 4px 0 rgb(255, 0, 0);
+
+                    &:hover {
+                        box-shadow: 5px 5px 0 rgb(255, 0, 0);
+                    }
+
+                    .content {
+                        gap: 12px;
+
+                        .imageWrapper {
+                            padding: 8px;
+                        }
+
+                        .cardInfo {
+                            gap: 8px;
+
+                            .lessonName {
+                                font-size: 16px;
+                            }
+
+                            .lessonDesc {
+                                font-size: 14px;
+                            }
+
+                            .infoLastBlock {
+                                flex-direction: column;
+                                gap: 8px;
+
+                                .lessonTheme,
+                                .lessonData {
+                                    font-size: 12px;
+                                }
+                            }
+                        }
+                    }
+
+                    .buttons {
+                        flex-direction: column;
+                        gap: 10px;
+
+                        button {
+                            font-size: 15px;
+                            padding: 10px;
+                            box-shadow: 3px 3px 0 rgb(255, 0, 0);
+
+                            &:hover:not(:disabled) {
+                                box-shadow: 5px 5px 0 rgb(255, 0, 0);
+                            }
+
+                            &:active:not(:disabled) {
+                                box-shadow: 2px 2px 0 rgb(255, 0, 0);
+                            }
+                        }
+
+                        .delete {
+                            box-shadow: 3px 3px 0 rgb(139, 0, 0);
+
+                            &:hover:not(:disabled) {
+                                box-shadow: 5px 5px 0 rgb(139, 0, 0);
+                            }
+
+                            &:active:not(:disabled) {
+                                box-shadow: 2px 2px 0 rgb(139, 0, 0);
+                            }
+                        }
+                    }
+                }
+
+                .empty {
+                    font-size: 18px;
+                    padding: 25px 15px;
+                }
+
+                .loader {
+                    padding: 40px 15px;
+
+                    .spinner {
+                        width: 40px;
+                        height: 40px;
+                        border-width: 2.5px;
+                    }
+
+                    p {
+                        font-size: 15px;
+                    }
+                }
+            }
+        }
+
+        .toast {
+            padding: 10px 14px;
+            font-size: 13px;
+
+            .closeToast {
+                font-size: 20px;
+                width: 20px;
+                height: 20px;
             }
         }
     }

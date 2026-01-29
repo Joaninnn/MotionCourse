@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import style from "./Upload.module.scss";
 import Image from "next/image";
 import videoIcon from "@/assets/Icons/videoIcon.png";
@@ -20,7 +20,21 @@ interface ApiError {
     };
 }
 
+interface FieldErrors {
+    course?: string;
+    category_lesson?: string;
+    lesson_number?: string;
+    description?: string;
+    video?: string;
+}
+
+interface ToastMessage {
+    type: 'success' | 'error';
+    message: string;
+}
+
 function Upload({ editingId, onCancel }: UploadProps) {
+    const uploadRef = useRef<HTMLElement>(null);
     const [formData, setFormData] = useState<{
         course: string;
         category_lesson: string;
@@ -37,30 +51,91 @@ function Upload({ editingId, onCancel }: UploadProps) {
         videoPreview: null,
     });
 
+    const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+    const [toast, setToast] = useState<ToastMessage | null>(null);
+
     const [createVideo, { isLoading: isCreating }] = useCreateVideoMutation();
     const [updateVideo, { isLoading: isUpdating }] = useUpdateVideoMutation();
     const { data: editingVideo } = useGetMentorVideoDetailQuery(editingId!, {
         skip: !editingId,
     });
 
-    React.useEffect(() => {
-        if (editingVideo) {
-            setFormData({
-                course: editingVideo.course.toString(),
-                category_lesson: editingVideo.category_lesson.toString(),
-                lesson_number: editingVideo.lesson_number.toString(),
-                description: editingVideo.description || "",
-                videoFile: null,
-                videoPreview: editingVideo.video,
-            });
+    // Scroll to top when editing
+    useEffect(() => {
+        if (editingId && uploadRef.current) {
+            uploadRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-    }, [editingVideo]);
+    }, [editingId]);
+
+    // Load editing video data - using ref to track if already loaded
+    const loadedVideoIdRef = useRef<number | null>(null);
+    
+    useEffect(() => {
+        if (editingVideo && editingId && loadedVideoIdRef.current !== editingId) {
+            loadedVideoIdRef.current = editingId;
+            
+            // Use setTimeout to avoid synchronous setState in effect
+            const timeoutId = setTimeout(() => {
+                setFormData({
+                    course: editingVideo.course.toString(),
+                    category_lesson: editingVideo.category_lesson.toString(),
+                    lesson_number: editingVideo.lesson_number.toString(),
+                    description: editingVideo.description || "",
+                    videoFile: null,
+                    videoPreview: editingVideo.video,
+                });
+            }, 0);
+            
+            return () => clearTimeout(timeoutId);
+        } else if (!editingId) {
+            loadedVideoIdRef.current = null;
+        }
+    }, [editingVideo, editingId]);
+
+    // Toast auto-hide
+    useEffect(() => {
+        if (toast) {
+            const timer = setTimeout(() => {
+                setToast(null);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [toast]);
+
+    const showToast = (type: 'success' | 'error', message: string) => {
+        setToast({ type, message });
+    };
+
+    const getErrorMessage = (field: string, errorData: string[] | string): string => {
+        const errorArray = Array.isArray(errorData) ? errorData : [errorData];
+        const errorMessage = errorArray[0];
+
+        // Русификация ошибок
+        if (errorMessage.includes('does not exist') || errorMessage.includes('matching query does not exist')) {
+            switch (field) {
+                case 'course':
+                    return 'Курс с таким ID не найден';
+                case 'category_lesson':
+                    return 'Категория урока с таким ID не найдена';
+                default:
+                    return 'Объект не найден';
+            }
+        }
+        if (errorMessage.includes('required') || errorMessage.includes('This field is required')) {
+            return 'Обязательное поле';
+        }
+        if (errorMessage.includes('invalid')) {
+            return 'Неверный формат данных';
+        }
+        return errorMessage;
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setFieldErrors({});
         
         if (!formData.videoFile && !editingId) {
-            alert("Пожалуйста, выберите видео для загрузки");
+            setFieldErrors({ video: 'Выберите видео для загрузки' });
             return;
         }
 
@@ -94,13 +169,12 @@ function Upload({ editingId, onCancel }: UploadProps) {
                     description: formData.description || undefined,
                 };
                 
-                // Добавляем видео только если выбрали новое
                 if (formData.videoFile) {
                     updateData.video = formData.videoFile;
                 }
                 
                 await updateVideo(updateData).unwrap();
-                alert("Видео успешно обновлено!");
+                showToast('success', 'Видео успешно обновлено!');
                 onCancel?.();
             } else {
                 await createVideo({
@@ -110,7 +184,8 @@ function Upload({ editingId, onCancel }: UploadProps) {
                     lesson_number: parseInt(formData.lesson_number) || undefined,
                     description: formData.description || undefined,
                 }).unwrap();
-                alert("Видео успешно загружено!");
+                showToast('success', 'Видео успешно загружено!');
+                
                 // Reset form
                 setFormData({
                     course: "",
@@ -123,40 +198,50 @@ function Upload({ editingId, onCancel }: UploadProps) {
             }
         } catch (error: unknown) {
             const apiError = error as ApiError;
-            console.error("Error:", apiError);
-            console.error("Error details JSON:", JSON.stringify(apiError, null, 2));
-            console.error("Error status:", apiError?.status);
-            console.error("Error data:", apiError?.data);
-            console.error("Form data:", {
-                course: formData.course,
-                category_lesson: formData.category_lesson,
-                lesson_number: formData.lesson_number,
-                description: formData.description,
-                hasVideoFile: !!formData.videoFile,
-                fileName: formData.videoFile?.name,
-                fileSize: formData.videoFile?.size
-            });
             
-            // Показываем конкретную ошибку от сервера если есть
-            let errorMessage = editingId ? "Ошибка при обновлении видео" : "Ошибка при загрузке видео";
-            
-            if (apiError?.data) {
-                // Обрабатываем ошибки валидации полей
-                const errorFields = Object.keys(apiError.data);
-                if (errorFields.length > 0) {
-                    const fieldErrors = errorFields.map((field: string) => {
-                        const messages = apiError.data[field];
-                        return `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`;
-                    });
-                    errorMessage = `Ошибка валидации:\n${fieldErrors.join('\n')}`;
-                } else if (apiError.data.detail) {
-                    errorMessage = Array.isArray(apiError.data.detail) ? apiError.data.detail.join(', ') : apiError.data.detail;
-                } else if (apiError.data.message) {
-                    errorMessage = Array.isArray(apiError.data.message) ? apiError.data.message.join(', ') : apiError.data.message;
-                }
+            // Safe logging without triggering Next.js error
+            if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+                console.log("Upload Error Details:", {
+                    status: apiError?.status,
+                    data: apiError?.data,
+                    formData: {
+                        course: formData.course,
+                        category_lesson: formData.category_lesson,
+                        lesson_number: formData.lesson_number,
+                        description: formData.description,
+                        hasVideoFile: !!formData.videoFile,
+                    }
+                });
             }
             
-            alert(errorMessage);
+            const errors: FieldErrors = {};
+            
+            if (apiError?.data) {
+                Object.keys(apiError.data).forEach((field: string) => {
+                    const fieldError = apiError.data[field];
+                    if (fieldError && field !== 'detail' && field !== 'message') {
+                        errors[field as keyof FieldErrors] = getErrorMessage(field, fieldError);
+                    }
+                });
+
+                if (apiError.data.detail) {
+                    const detailError = Array.isArray(apiError.data.detail) 
+                        ? apiError.data.detail.join(', ') 
+                        : apiError.data.detail;
+                    showToast('error', detailError);
+                } else if (apiError.data.message) {
+                    const messageError = Array.isArray(apiError.data.message) 
+                        ? apiError.data.message.join(', ') 
+                        : apiError.data.message;
+                    showToast('error', messageError);
+                } else if (Object.keys(errors).length > 0) {
+                    showToast('error', 'Проверьте правильность заполнения полей');
+                }
+            } else {
+                showToast('error', editingId ? 'Ошибка при обновлении видео' : 'Ошибка при загрузке видео');
+            }
+            
+            setFieldErrors(errors);
         }
     };
 
@@ -166,6 +251,13 @@ function Upload({ editingId, onCancel }: UploadProps) {
             ...prev,
             [name]: value,
         }));
+        // Clear error on input change
+        if (fieldErrors[name as keyof FieldErrors]) {
+            setFieldErrors((prev) => ({
+                ...prev,
+                [name]: undefined,
+            }));
+        }
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -191,11 +283,25 @@ function Upload({ editingId, onCancel }: UploadProps) {
 
                 URL.revokeObjectURL(video.src);
             });
+
+            // Clear video error
+            if (fieldErrors.video) {
+                setFieldErrors((prev) => ({
+                    ...prev,
+                    video: undefined,
+                }));
+            }
         }
     };
 
     return (
-        <section className={style.Upload}>
+        <section className={style.Upload} ref={uploadRef}>
+            {toast && (
+                <div className={`${style.toast} ${style[toast.type]}`}>
+                    <span>{toast.message}</span>
+                    <button onClick={() => setToast(null)} className={style.closeToast}>×</button>
+                </div>
+            )}
             <div className="container">
                 <div className={style.content}>
                     <h2 className={style.title}>
@@ -226,10 +332,10 @@ function Upload({ editingId, onCancel }: UploadProps) {
                             )}
                             <div className={style.info}>
                                 <h2 className={style.lessonName}>
-                                    Курс: {formData.course}
+                                    Курс: {formData.course || 'Не указан'}
                                 </h2>
                                 <span className={style.lessonDesc}>
-                                    Категория: {formData.category_lesson}
+                                    Категория: {formData.category_lesson || 'Не указана'}
                                 </span>
                                 <div className={style.infoLastBlock}>
                                     <h2 className={style.lessonTheme}>
@@ -253,9 +359,12 @@ function Upload({ editingId, onCancel }: UploadProps) {
                                         onChange={handleInputChange}
                                         placeholder="ID курса (например: 1, 2, 3...)"
                                         type="number"
-                                        className={style.input}
+                                        className={`${style.input} ${fieldErrors.course ? style.error : ''}`}
                                         required
                                     />
+                                    {fieldErrors.course && (
+                                        <span className={style.errorMessage}>{fieldErrors.course}</span>
+                                    )}
                                 </div>
                                 <div className={style.inputBlock}>
                                     <h2 className={style.inputTitle}>
@@ -267,9 +376,12 @@ function Upload({ editingId, onCancel }: UploadProps) {
                                         onChange={handleInputChange}
                                         placeholder="ID категории урока (например: 1, 2, 3...)"
                                         type="number"
-                                        className={style.input}
+                                        className={`${style.input} ${fieldErrors.category_lesson ? style.error : ''}`}
                                         required
                                     />
+                                    {fieldErrors.category_lesson && (
+                                        <span className={style.errorMessage}>{fieldErrors.category_lesson}</span>
+                                    )}
                                 </div>
                                 <div className={style.inputBlock}>
                                     <h2 className={style.inputTitle}>
@@ -281,23 +393,29 @@ function Upload({ editingId, onCancel }: UploadProps) {
                                         onChange={handleInputChange}
                                         placeholder="Номер урока (необязательно)"
                                         type="number"
-                                        className={style.input}
+                                        className={`${style.input} ${fieldErrors.lesson_number ? style.error : ''}`}
                                     />
+                                    {fieldErrors.lesson_number && (
+                                        <span className={style.errorMessage}>{fieldErrors.lesson_number}</span>
+                                    )}
                                 </div>
-                                {!editingId && (
-                                    <div className={style.inputBlock}>
-                                        <h2 className={style.inputTitle}>Видео</h2>
-                                        <input
-                                            name="videoFile"
-                                            onChange={handleFileChange}
-                                            placeholder="видео"
-                                            type="file"
-                                            accept="video/*"
-                                            className={style.input}
-                                            required
-                                        />
-                                    </div>
-                                )}
+                                <div className={style.inputBlock}>
+                                    <h2 className={style.inputTitle}>
+                                        {editingId ? 'Новое видео (необязательно)' : 'Видео'}
+                                    </h2>
+                                    <input
+                                        name="videoFile"
+                                        onChange={handleFileChange}
+                                        placeholder="видео"
+                                        type="file"
+                                        accept="video/*"
+                                        className={`${style.input} ${fieldErrors.video ? style.error : ''}`}
+                                        required={!editingId}
+                                    />
+                                    {fieldErrors.video && (
+                                        <span className={style.errorMessage}>{fieldErrors.video}</span>
+                                    )}
+                                </div>
                             </div>
                             <div className={style.descInput}>
                                 <h2 className={style.inputTitle}>Описание</h2>
@@ -307,8 +425,11 @@ function Upload({ editingId, onCancel }: UploadProps) {
                                     onChange={handleInputChange}
                                     placeholder="описание урока"
                                     type="text"
-                                    className={style.input}
+                                    className={`${style.input} ${fieldErrors.description ? style.error : ''}`}
                                 />
+                                {fieldErrors.description && (
+                                    <span className={style.errorMessage}>{fieldErrors.description}</span>
+                                )}
                             </div>
                             <div className={style.buttonGroup}>
                                 {onCancel && (
