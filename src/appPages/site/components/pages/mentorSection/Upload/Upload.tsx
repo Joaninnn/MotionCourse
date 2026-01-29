@@ -70,12 +70,37 @@ function Upload({ editingId, onCancel }: UploadProps) {
     // Load editing video data - using ref to track if already loaded
     const loadedVideoIdRef = useRef<number | null>(null);
     
+    const resetForm = () => {
+        setFormData({
+            course: "",
+            category_lesson: "",
+            lesson_number: "",
+            description: "",
+            videoFile: null,
+            videoPreview: null,
+        });
+        setFieldErrors({});
+        loadedVideoIdRef.current = null;
+    };
+    
     useEffect(() => {
         if (editingVideo && editingId && loadedVideoIdRef.current !== editingId) {
             loadedVideoIdRef.current = editingId;
             
             // Use setTimeout to avoid synchronous setState in effect
             const timeoutId = setTimeout(() => {
+                // Clear form first before loading new data
+                setFormData({
+                    course: "",
+                    category_lesson: "",
+                    lesson_number: "",
+                    description: "",
+                    videoFile: null,
+                    videoPreview: null,
+                });
+                setFieldErrors({});
+                
+                // Then load new data
                 setFormData({
                     course: editingVideo.course.toString(),
                     category_lesson: editingVideo.category_lesson.toString(),
@@ -88,7 +113,10 @@ function Upload({ editingId, onCancel }: UploadProps) {
             
             return () => clearTimeout(timeoutId);
         } else if (!editingId) {
-            loadedVideoIdRef.current = null;
+            const timeoutId = setTimeout(() => {
+                resetForm();
+            }, 0);
+            return () => clearTimeout(timeoutId);
         }
     }, [editingVideo, editingId]);
 
@@ -175,6 +203,7 @@ function Upload({ editingId, onCancel }: UploadProps) {
                 
                 await updateVideo(updateData).unwrap();
                 showToast('success', 'Видео успешно обновлено!');
+                resetForm();
                 onCancel?.();
             } else {
                 await createVideo({
@@ -435,7 +464,10 @@ function Upload({ editingId, onCancel }: UploadProps) {
                                 {onCancel && (
                                     <button 
                                         type="button" 
-                                        onClick={onCancel}
+                                        onClick={() => {
+                                            resetForm();
+                                            onCancel?.();
+                                        }}
                                         className={style.cancel}
                                     >
                                         ОТМЕНА
