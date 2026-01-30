@@ -1,4 +1,4 @@
-# MotionCourse Platform
+# Motion WEB Platform
 
 ## 🎓 Overview
 
